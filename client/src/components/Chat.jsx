@@ -1,10 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 function Chat({ documentId }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+   // load the saved conversation whenever the active document changes
+  useEffect(() => {
+    if (!documentId) return;                       // nothing to load until a document is active
+    fetch(`/api/history?documentId=${documentId}`, { credentials: 'include' })
+      .then((r) => r.json())
+      .then((data) =>
+        setMessages(data.history.map((m) => ({ role: m.role, text: m.text })))   // same {role, text} shape the chat draws
+      );
+  }, [documentId]);                                // re-run each time the active document changes 
 
   async function send(e) {
     e.preventDefault();
