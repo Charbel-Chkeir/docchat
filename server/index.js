@@ -20,10 +20,12 @@ const REGISTRATION_OPEN = !IS_PRODUCTION;
 app.use(express.json());
 
 // sessions: remembers who is logged in, via a signed cookie
+app.set('trust proxy', 1);                   // trust Render's HTTPS proxy, so Express knows the request was secure
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'dev-only-secret',
+  secret: process.env.SESSION_SECRET,        // signs the session cookie so it can't be forged (no public fallback)
   resave: false,
   saveUninitialized: false,
+  cookie: { secure: IS_PRODUCTION, sameSite: 'lax' },   // secure = HTTPS-only cookie, but only on the live site
 }));
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });   // NEW: the key is only read here, on the server
